@@ -7,6 +7,8 @@ import os
 from datetime import datetime
 from typing import List, Dict, Optional
 
+from .logger import get_logger
+
 
 class HighScoreManager:
     """高分榜管理器"""
@@ -42,6 +44,7 @@ class HighScoreManager:
                     self.scores = data.get('scores', [])
         except (json.JSONDecodeError, IOError) as e:
             self.scores = []
+            get_logger().warning(f"加载高分榜失败: {e}")
 
     def _save_scores(self):
         """保存高分榜到文件"""
@@ -53,7 +56,7 @@ class HighScoreManager:
             with open(self.file_path, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
         except IOError as e:
-            pass  # 静默处理保存失败
+            get_logger().warning(f"保存高分榜失败: {e}")
 
     def add_score(self, score: int, player_name: str = "玩家") -> int:
         """
