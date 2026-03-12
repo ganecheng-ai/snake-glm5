@@ -71,3 +71,6 @@ logs/
 
 # High scores (user data)
 highscores.json
+
+# Skin config (user preference)
+skin_config.json
