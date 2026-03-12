@@ -17,12 +17,13 @@ from .game import Game
 from .snake import Snake
 from .food import Food
 from .ui import UI
+from .highscore import HighScoreManager, get_highscore_manager
 from .config import *
 
-__version__ = '1.1.0'
+__version__ = '1.2.0'
 __author__ = 'Claude Code'
 
-__all__ = ['Game', 'Snake', 'Food', 'UI', 'main']
+__all__ = ['Game', 'Snake', 'Food', 'UI', 'HighScoreManager', 'get_highscore_manager', 'main']
 
 
 def main():

@@ -18,6 +18,7 @@ from .snake import Snake
 from .food import Food
 from .ui import UI
 from .logger import get_logger
+from .highscore import get_highscore_manager
 
 
 class Game:
@@ -43,12 +44,14 @@ class Game:
         self.snake = Snake()
         self.food = Food()
         self.ui = UI(self.screen)
+        self.highscore_manager = get_highscore_manager()
 
         # 游戏状态
         self.state = STATE_MENU
         self.score = 0
         self.speed = INITIAL_SPEED
-        self.high_score = 0
+        self.high_score = self.highscore_manager.get_high_score()
+        self.current_rank = -1  # 当前游戏排名
 
         # 计时器
         self.last_move_time = 0
@@ -176,6 +179,14 @@ class Game:
             if self.score > self.high_score:
                 self.high_score = self.score
                 self.logger.info(f"新最高分: {self.high_score}")
+
+            # 保存分数到高分榜
+            if self.highscore_manager.is_high_score(self.score):
+                self.current_rank = self.highscore_manager.add_score(self.score)
+                self.logger.info(f"分数 {self.score} 进入排行榜第 {self.current_rank} 名")
+            else:
+                self.current_rank = -1
+
             self.logger.log_game_over(self.score, len(self.snake), self.high_score)
             return
 
@@ -215,11 +226,18 @@ class Game:
 
         # 绘制界面
         if self.state == STATE_MENU:
-            self.ui.draw_menu()
+            self.ui.draw_menu(
+                self.highscore_manager.get_top_scores(5),
+                self.high_score
+            )
         elif self.state == STATE_PAUSED:
             self.ui.draw_pause()
         elif self.state == STATE_GAME_OVER:
-            self.ui.draw_game_over(self.score)
+            self.ui.draw_game_over(
+                self.score,
+                self.high_score,
+                self.current_rank
+            )
 
         # 更新显示
         pygame.display.flip()

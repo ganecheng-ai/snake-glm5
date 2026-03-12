@@ -11,11 +11,13 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from snake_game.snake import Snake
 from snake_game.food import Food
+from snake_game.highscore import HighScoreManager
 from snake_game.config import (
     GRID_WIDTH, GRID_HEIGHT,
     DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_RIGHT,
     INITIAL_SNAKE_LENGTH
 )
+import tempfile
 
 
 class TestSnake(unittest.TestCase):
@@ -183,6 +185,107 @@ class TestConfig(unittest.TestCase):
         for direction in [DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_RIGHT]:
             dx, dy = direction
             self.assertEqual(abs(dx) + abs(dy), 1)
+
+
+class TestHighScore(unittest.TestCase):
+    """高分榜测试"""
+
+    def setUp(self):
+        """测试前准备"""
+        # 使用临时文件
+        self.temp_file = tempfile.NamedTemporaryFile(
+            mode='w', suffix='.json', delete=False
+        )
+        self.temp_file.close()
+        self.highscore = HighScoreManager(self.temp_file.name, max_scores=5)
+
+    def tearDown(self):
+        """测试后清理"""
+        import os
+        if os.path.exists(self.temp_file.name):
+            os.unlink(self.temp_file.name)
+
+    def test_initial_empty(self):
+        """测试初始为空"""
+        self.assertEqual(len(self.highscore), 0)
+        self.assertEqual(self.highscore.get_high_score(), 0)
+
+    def test_add_score(self):
+        """测试添加分数"""
+        rank = self.highscore.add_score(100)
+        self.assertEqual(rank, 1)
+        self.assertEqual(len(self.highscore), 1)
+        self.assertEqual(self.highscore.get_high_score(), 100)
+
+    def test_add_multiple_scores(self):
+        """测试添加多个分数"""
+        self.highscore.add_score(100)
+        self.highscore.add_score(200)
+        self.highscore.add_score(150)
+
+        self.assertEqual(len(self.highscore), 3)
+        # 分数应该按降序排列
+        scores = self.highscore.get_top_scores()
+        self.assertEqual(scores[0]['score'], 200)
+        self.assertEqual(scores[1]['score'], 150)
+        self.assertEqual(scores[2]['score'], 100)
+
+    def test_max_scores_limit(self):
+        """测试最大分数数量限制"""
+        self.highscore.add_score(100)
+        self.highscore.add_score(200)
+        self.highscore.add_score(300)
+        self.highscore.add_score(400)
+        self.highscore.add_score(500)
+        self.highscore.add_score(50)  # 这个不应该进入排行榜
+
+        self.assertEqual(len(self.highscore), 5)
+        # 最低分应该是 100
+        self.assertEqual(self.highscore.get_top_scores()[-1]['score'], 100)
+
+    def test_is_high_score(self):
+        """测试判断是否高分"""
+        self.highscore.add_score(100)
+        self.highscore.add_score(200)
+        self.highscore.add_score(300)
+
+        self.assertTrue(self.highscore.is_high_score(400))
+        self.assertTrue(self.highscore.is_high_score(50))  # 未满
+        # 填满
+        self.highscore.add_score(400)
+        self.highscore.add_score(500)
+        # 现在50不应该进入
+        self.assertFalse(self.highscore.is_high_score(50))
+
+    def test_get_rank(self):
+        """测试获取排名"""
+        self.highscore.add_score(100)
+        self.highscore.add_score(200)
+        self.highscore.add_score(300)
+
+        self.assertEqual(self.highscore.get_rank(400), 1)
+        self.assertEqual(self.highscore.get_rank(250), 2)  # 250 > 200, so rank 2
+        self.assertEqual(self.highscore.get_rank(150), 3)  # 150 > 100, so rank 3
+        self.assertEqual(self.highscore.get_rank(50), 4)   # 50 < 100, would be rank 4
+
+    def test_clear_scores(self):
+        """测试清空分数"""
+        self.highscore.add_score(100)
+        self.highscore.add_score(200)
+        self.highscore.clear_scores()
+
+        self.assertEqual(len(self.highscore), 0)
+        self.assertEqual(self.highscore.get_high_score(), 0)
+
+    def test_persistence(self):
+        """测试持久化"""
+        self.highscore.add_score(100)
+        self.highscore.add_score(200)
+
+        # 创建新实例，应该能读取之前的分数
+        new_highscore = HighScoreManager(self.temp_file.name, max_scores=5)
+        self.assertEqual(len(new_highscore), 2)
+        self.assertEqual(new_highscore.get_high_score(), 200)
 
 
 if __name__ == '__main__':

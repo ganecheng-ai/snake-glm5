@@ -68,3 +68,6 @@ test_*.pyc
 # Logs
 logs/
 *.log
+
+# High scores (user data)
+highscores.json
