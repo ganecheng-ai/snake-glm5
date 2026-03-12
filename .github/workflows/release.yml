@@ -79,19 +79,21 @@ jobs:
         run: |
           pyinstaller --onefile --windowed --name snake-game run_game.py --hidden-import=snake_game --hidden-import=snake_game.game --hidden-import=snake_game.snake --hidden-import=snake_game.food --hidden-import=snake_game.ui --hidden-import=snake_game.config --hidden-import=snake_game.logger --hidden-import=snake_game.highscore --hidden-import=snake_game.main --noconfirm
 
-      - name: Create distribution package
+      - name: Create distribution package (Windows)
+        if: matrix.platform == 'windows'
+        shell: bash
         run: |
           mkdir -p dist/package
+          cp dist/snake-game.exe dist/package/
+          cp README.md dist/package/
+          cp LICENSE dist/package/
 
-          # Copy executable (the main artifact)
-          if [ "${{ matrix.platform }}" = "windows" ]; then
-            cp dist/snake-game.exe dist/package/
-          else
-            cp dist/snake-game dist/package/
-            chmod +x dist/package/snake-game
-          fi
-
-          # Copy documentation
+      - name: Create distribution package (Linux/macOS)
+        if: matrix.platform != 'windows'
+        run: |
+          mkdir -p dist/package
+          cp dist/snake-game dist/package/
+          chmod +x dist/package/snake-game
           cp README.md dist/package/
           cp LICENSE dist/package/
 
