@@ -21,7 +21,7 @@ from .highscore import HighScoreManager, get_highscore_manager
 from .skin import SkinManager, get_skin_manager
 from .config import *
 
-__version__ = '1.5.0'
+__version__ = '1.5.1'
 __author__ = 'Claude Code'
 
 __all__ = ['Game', 'Snake', 'Food', 'UI', 'HighScoreManager', 'get_highscore_manager',

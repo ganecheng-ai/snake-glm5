@@ -390,9 +390,9 @@ class UI:
         self.screen.blit(title, title_rect)
 
         # 皮肤列表
-        skin_display_start_y = 100
-        skin_height = 55
-        visible_skins = min(len(skins), 7)  # 最多显示7个
+        skin_display_start_y = 80
+        skin_height = 50
+        visible_skins = len(skins)  # 显示所有皮肤
 
         for i, skin in enumerate(skins[:visible_skins]):
             y = skin_display_start_y + i * skin_height
