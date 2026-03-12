@@ -10,7 +10,8 @@ import pygame
 from .config import (
     WINDOW_WIDTH, WINDOW_HEIGHT, GRID_SIZE,
     COLORS, FONT_SIZE_LARGE, FONT_SIZE_MEDIUM, FONT_SIZE_SMALL,
-    STATE_MENU, STATE_PLAYING, STATE_PAUSED, STATE_GAME_OVER
+    STATE_MENU, STATE_PLAYING, STATE_PAUSED, STATE_GAME_OVER,
+    STATE_SKIN_SELECT
 )
 
 
@@ -182,13 +183,17 @@ class UI:
             eye_size // 2
         )
 
-    def draw_food(self, position: Tuple[int, int], pulse_scale: float):
+    def draw_food(self, position: Tuple[int, int], pulse_scale: float,
+                  food_color: Tuple[int, int, int] = None,
+                  glow_color: Tuple[int, int, int] = None):
         """
         绘制食物
 
         Args:
             position: 食物位置
             pulse_scale: 脉动缩放比例
+            food_color: 食物颜色，为空则使用默认颜色
+            glow_color: 光晕颜色，为空则自动计算
         """
         x, y = position
         center_x = x * GRID_SIZE + GRID_SIZE // 2
@@ -200,15 +205,21 @@ class UI:
         # 应用脉动效果
         radius = int(base_radius * pulse_scale)
 
+        # 使用自定义颜色或默认颜色
+        _food_color = food_color if food_color else COLORS['food']
+
         # 绘制外圈光晕
-        glow_color = (
-            min(COLORS['food'][0] + 50, 255),
-            min(COLORS['food'][1] + 50, 255),
-            min(COLORS['food'][2] + 50, 255)
-        )
+        if glow_color:
+            _glow_color = glow_color
+        else:
+            _glow_color = (
+                min(_food_color[0] + 50, 255),
+                min(_food_color[1] + 50, 255),
+                min(_food_color[2] + 50, 255)
+            )
         pygame.draw.circle(
             self.screen,
-            glow_color,
+            _glow_color,
             (center_x, center_y),
             radius + 3
         )
@@ -216,7 +227,7 @@ class UI:
         # 绘制主体
         pygame.draw.circle(
             self.screen,
-            COLORS['food'],
+            _food_color,
             (center_x, center_y),
             radius
         )
@@ -337,7 +348,7 @@ class UI:
             "操作说明:",
             "↑ ↓ ← → 或 W A S D 控制方向",
             "ESC 暂停游戏",
-            "Q 退出游戏"
+            "S 皮肤选择  Q 退出游戏"
         ]
 
         for i, text in enumerate(instructions):
@@ -350,6 +361,115 @@ class UI:
                 center=(WINDOW_WIDTH // 2, WINDOW_HEIGHT * 2 // 3 + i * 30)
             )
             self.screen.blit(inst_surface, inst_rect)
+
+    def draw_skin_select(self, skins: List, current_skin_name: str,
+                             selected_index: int = 0):
+        """
+        绘制皮肤选择界面
+
+        Args:
+            skins: 皮肤列表
+            current_skin_name: 当前皮肤名称
+            selected_index: 当前选中的皮肤索引
+        """
+        # 半透明背景
+        overlay = pygame.Surface((WINDOW_WIDTH, WINDOW_HEIGHT))
+        overlay.set_alpha(220)
+        overlay.fill(COLORS['menu_bg'])
+        self.screen.blit(overlay, (0, 0))
+
+        # 标题
+        title = self.fonts['large'].render(
+            "皮肤选择",
+            True,
+            COLORS['snake_head']
+        )
+        title_rect = title.get_rect(
+            center=(WINDOW_WIDTH // 2, 50)
+        )
+        self.screen.blit(title, title_rect)
+
+        # 皮肤列表
+        skin_display_start_y = 100
+        skin_height = 55
+        visible_skins = min(len(skins), 7)  # 最多显示7个
+
+        for i, skin in enumerate(skins[:visible_skins]):
+            y = skin_display_start_y + i * skin_height
+
+            # 选中高亮
+            is_selected = (i == selected_index)
+            is_current = (skin.name == current_skin_name)
+
+            if is_selected:
+                # 选中背景
+                highlight_rect = pygame.Rect(
+                    WINDOW_WIDTH // 2 - 180, y - 5,
+                    360, skin_height - 5
+                )
+                pygame.draw.rect(
+                    self.screen,
+                    (60, 60, 90),
+                    highlight_rect,
+                    border_radius=8
+                )
+
+            # 皮肤名称
+            name_color = skin.snake_head if is_selected else COLORS['text']
+            name_text = self.fonts['medium'].render(
+                f"{skin.display_name}",
+                True,
+                name_color
+            )
+            self.screen.blit(name_text, (WINDOW_WIDTH // 2 - 160, y))
+
+            # 当前使用标记
+            if is_current:
+                current_text = self.fonts['small'].render(
+                    "[当前]",
+                    True,
+                    (100, 255, 100)
+                )
+                self.screen.blit(current_text, (WINDOW_WIDTH // 2 + 80, y + 5))
+
+            # 颜色预览 - 蛇头
+            pygame.draw.rect(
+                self.screen,
+                skin.snake_head,
+                (WINDOW_WIDTH // 2 - 160, y + 32, 25, 12),
+                border_radius=3
+            )
+            # 颜色预览 - 蛇身
+            pygame.draw.rect(
+                self.screen,
+                skin.snake_body,
+                (WINDOW_WIDTH // 2 - 130, y + 32, 25, 12),
+                border_radius=3
+            )
+            # 颜色预览 - 食物
+            pygame.draw.circle(
+                self.screen,
+                skin.food,
+                (WINDOW_WIDTH // 2 - 90, y + 38),
+                8
+            )
+
+        # 操作提示
+        hint_y = skin_display_start_y + visible_skins * skin_height + 30
+        hints = [
+            "↑ ↓ 选择皮肤  回车/空格 确认",
+            "ESC 返回主菜单"
+        ]
+        for i, hint in enumerate(hints):
+            hint_surface = self.fonts['small'].render(
+                hint,
+                True,
+                COLORS['text']
+            )
+            hint_rect = hint_surface.get_rect(
+                center=(WINDOW_WIDTH // 2, hint_y + i * 28)
+            )
+            self.screen.blit(hint_surface, hint_rect)
 
     def draw_pause(self):
         """绘制暂停界面"""

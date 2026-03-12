@@ -70,17 +70,17 @@ jobs:
       - name: Build executable (Windows)
         if: matrix.platform == 'windows'
         run: |
-          pyinstaller --onefile --windowed --name snake-game run_game.py --hidden-import=snake_game --hidden-import=snake_game.game --hidden-import=snake_game.snake --hidden-import=snake_game.food --hidden-import=snake_game.ui --hidden-import=snake_game.config --hidden-import=snake_game.logger --hidden-import=snake_game.highscore --hidden-import=snake_game.main --noconfirm
+          pyinstaller --onefile --windowed --name snake-game run_game.py --hidden-import=snake_game --hidden-import=snake_game.game --hidden-import=snake_game.snake --hidden-import=snake_game.food --hidden-import=snake_game.ui --hidden-import=snake_game.config --hidden-import=snake_game.logger --hidden-import=snake_game.highscore --hidden-import=snake_game.skin --hidden-import=snake_game.main --noconfirm
 
       - name: Build executable (Linux)
         if: matrix.platform == 'linux'
         run: |
-          pyinstaller --onefile --windowed --name snake-game run_game.py --hidden-import=snake_game --hidden-import=snake_game.game --hidden-import=snake_game.snake --hidden-import=snake_game.food --hidden-import=snake_game.ui --hidden-import=snake_game.config --hidden-import=snake_game.logger --hidden-import=snake_game.highscore --hidden-import=snake_game.main --noconfirm
+          pyinstaller --onefile --windowed --name snake-game run_game.py --hidden-import=snake_game --hidden-import=snake_game.game --hidden-import=snake_game.snake --hidden-import=snake_game.food --hidden-import=snake_game.ui --hidden-import=snake_game.config --hidden-import=snake_game.logger --hidden-import=snake_game.highscore --hidden-import=snake_game.skin --hidden-import=snake_game.main --noconfirm
 
       - name: Build executable (macOS)
         if: matrix.platform == 'macos'
         run: |
-          pyinstaller --onefile --windowed --name snake-game run_game.py --hidden-import=snake_game --hidden-import=snake_game.game --hidden-import=snake_game.snake --hidden-import=snake_game.food --hidden-import=snake_game.ui --hidden-import=snake_game.config --hidden-import=snake_game.logger --hidden-import=snake_game.highscore --hidden-import=snake_game.main --noconfirm
+          pyinstaller --onefile --windowed --name snake-game run_game.py --hidden-import=snake_game --hidden-import=snake_game.game --hidden-import=snake_game.snake --hidden-import=snake_game.food --hidden-import=snake_game.ui --hidden-import=snake_game.config --hidden-import=snake_game.logger --hidden-import=snake_game.highscore --hidden-import=snake_game.skin --hidden-import=snake_game.main --noconfirm
 
       - name: Create distribution package (Windows)
         if: matrix.platform == 'windows'

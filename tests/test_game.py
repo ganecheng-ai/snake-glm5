@@ -12,6 +12,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from snake_game.snake import Snake
 from snake_game.food import Food
 from snake_game.highscore import HighScoreManager
+from snake_game.skin import SkinManager, SkinTheme, BUILTIN_SKINS
 from snake_game.config import (
     GRID_WIDTH, GRID_HEIGHT,
     DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_RIGHT,
@@ -286,6 +287,148 @@ class TestHighScore(unittest.TestCase):
         new_highscore = HighScoreManager(self.temp_file.name, max_scores=5)
         self.assertEqual(len(new_highscore), 2)
         self.assertEqual(new_highscore.get_high_score(), 200)
+
+
+class TestSkin(unittest.TestCase):
+    """皮肤系统测试"""
+
+    def setUp(self):
+        """测试前准备"""
+        # 使用临时文件
+        self.temp_file = tempfile.NamedTemporaryFile(
+            mode='w', suffix='.json', delete=False
+        )
+        self.temp_file.close()
+        self.skin_manager = SkinManager(self.temp_file.name)
+
+    def tearDown(self):
+        """测试后清理"""
+        import os
+        if os.path.exists(self.temp_file.name):
+            os.unlink(self.temp_file.name)
+
+    def test_builtin_skins_loaded(self):
+        """测试内置皮肤加载"""
+        self.assertGreater(len(self.skin_manager), 0)
+        self.assertIn('classic', self.skin_manager)
+
+    def test_default_skin(self):
+        """测试默认皮肤"""
+        skin = self.skin_manager.get_skin()
+        self.assertEqual(skin.name, 'classic')
+
+    def test_get_skin_by_name(self):
+        """测试按名称获取皮肤"""
+        skin = self.skin_manager.get_skin('ocean')
+        self.assertEqual(skin.name, 'ocean')
+        self.assertEqual(skin.display_name, '海洋蓝')
+
+    def test_set_skin(self):
+        """测试设置皮肤"""
+        result = self.skin_manager.set_skin('fire')
+        self.assertTrue(result)
+        self.assertEqual(self.skin_manager.get_current_skin_name(), 'fire')
+
+    def test_set_invalid_skin(self):
+        """测试设置无效皮肤"""
+        result = self.skin_manager.set_skin('nonexistent')
+        self.assertFalse(result)
+        # 应该保持原来的皮肤
+        self.assertEqual(self.skin_manager.get_current_skin_name(), 'classic')
+
+    def test_get_all_skins(self):
+        """测试获取所有皮肤"""
+        skins = self.skin_manager.get_all_skins()
+        self.assertEqual(len(skins), len(BUILTIN_SKINS))
+
+    def test_skin_colors(self):
+        """测试皮肤颜色"""
+        skin = self.skin_manager.get_skin('golden')
+        self.assertEqual(skin.snake_head, (255, 215, 0))
+        self.assertEqual(skin.food, (220, 20, 60))
+
+    def test_skin_persistence(self):
+        """测试皮肤配置持久化"""
+        self.skin_manager.set_skin('purple')
+
+        # 创建新实例，应该能读取之前的配置
+        new_manager = SkinManager(self.temp_file.name)
+        self.assertEqual(new_manager.get_current_skin_name(), 'purple')
+
+    def test_skin_theme_to_dict(self):
+        """测试皮肤主题转字典"""
+        skin = BUILTIN_SKINS[0]
+        data = skin.to_dict()
+        self.assertIn('name', data)
+        self.assertIn('display_name', data)
+        self.assertIn('snake_head', data)
+
+    def test_skin_theme_from_dict(self):
+        """测试从字典创建皮肤主题"""
+        data = {
+            'name': 'test',
+            'display_name': '测试皮肤',
+            'snake_head': [255, 0, 0],
+            'snake_body': [200, 0, 0],
+            'food': [0, 255, 0],
+            'food_glow': [0, 200, 0],
+            'description': '测试用皮肤'
+        }
+        skin = SkinTheme.from_dict(data)
+        self.assertEqual(skin.name, 'test')
+        self.assertEqual(skin.snake_head, (255, 0, 0))
+
+
+class TestFoodColors(unittest.TestCase):
+    """食物颜色测试"""
+
+    def setUp(self):
+        """测试前准备"""
+        self.food = Food()
+
+    def test_default_color(self):
+        """测试默认颜色"""
+        # 默认颜色应该在未设置时使用
+        self.assertIsNotNone(self.food.color)
+
+    def test_set_colors(self):
+        """测试设置颜色"""
+        self.food.set_colors((255, 0, 0), (255, 100, 100))
+        self.assertEqual(self.food.color, (255, 0, 0))
+        self.assertEqual(self.food.glow_color, (255, 100, 100))
+
+    def test_auto_glow_color(self):
+        """测试自动计算光晕颜色"""
+        self.food.set_colors((100, 100, 100))
+        # 光晕颜色应该比基础颜色亮
+        glow = self.food.glow_color
+        self.assertEqual(glow, (150, 150, 150))
+
+
+class TestSnakeColors(unittest.TestCase):
+    """蛇颜色测试"""
+
+    def setUp(self):
+        """测试前准备"""
+        self.snake = Snake()
+
+    def test_custom_colors(self):
+        """测试自定义颜色"""
+        colors = self.snake.get_body_colors(
+            head_color=(255, 0, 0),
+            body_color=(200, 0, 0)
+        )
+        # 蛇头应该是自定义颜色
+        self.assertEqual(colors[0], (255, 0, 0))
+
+    def test_color_gradient(self):
+        """测试颜色渐变"""
+        colors = self.snake.get_body_colors(
+            head_color=(100, 100, 100),
+            body_color=(0, 0, 0)
+        )
+        # 颜色应该从头到尾渐变
+        self.assertGreater(colors[0][0], colors[-1][0])
 
 
 if __name__ == '__main__':

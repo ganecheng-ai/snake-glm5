@@ -4,7 +4,7 @@ Food Class
 """
 import math
 import random
-from typing import Tuple, List
+from typing import Tuple, List, Optional
 
 from .config import GRID_WIDTH, GRID_HEIGHT, COLORS
 
@@ -15,8 +15,44 @@ class Food:
     def __init__(self):
         """初始化食物"""
         self.position: Tuple[int, int] = (0, 0)
-        self.color = COLORS['food']
+        self._color: Optional[Tuple[int, int, int]] = None
+        self._glow_color: Optional[Tuple[int, int, int]] = None
         self.animation_offset = 0
+
+    @property
+    def color(self) -> Tuple[int, int, int]:
+        """获取食物颜色"""
+        return self._color if self._color else COLORS['food']
+
+    @color.setter
+    def color(self, value: Tuple[int, int, int]):
+        """设置食物颜色"""
+        self._color = value
+
+    @property
+    def glow_color(self) -> Tuple[int, int, int]:
+        """获取食物光晕颜色"""
+        if self._glow_color:
+            return self._glow_color
+        # 默认光晕颜色比主体颜色亮一些
+        base = self.color
+        return (
+            min(base[0] + 50, 255),
+            min(base[1] + 50, 255),
+            min(base[2] + 50, 255)
+        )
+
+    def set_colors(self, food_color: Tuple[int, int, int],
+                   glow_color: Tuple[int, int, int] = None):
+        """
+        设置食物颜色
+
+        Args:
+            food_color: 食物颜色
+            glow_color: 光晕颜色，为空则自动计算
+        """
+        self._color = food_color
+        self._glow_color = glow_color
 
     def spawn(self, snake_body: List[Tuple[int, int]]):
         """

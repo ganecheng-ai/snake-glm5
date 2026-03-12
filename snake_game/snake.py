@@ -112,9 +112,14 @@ class Snake:
         x, y = pos
         return 0 <= x < GRID_WIDTH and 0 <= y < GRID_HEIGHT
 
-    def get_body_colors(self) -> List[Tuple[int, int, int]]:
+    def get_body_colors(self, head_color: Tuple[int, int, int] = None,
+                        body_color: Tuple[int, int, int] = None) -> List[Tuple[int, int, int]]:
         """
         获取蛇身各部分的颜色（渐变效果）
+
+        Args:
+            head_color: 蛇头颜色，为空则使用默认颜色
+            body_color: 蛇身颜色，为空则使用默认颜色
 
         Returns:
             List[Tuple[int, int, int]]: 颜色列表
@@ -127,12 +132,12 @@ class Snake:
             ratio = i / max(body_len - 1, 1)
 
             # 从蛇头颜色渐变到蛇尾颜色
-            head_color = COLORS['snake_head']
-            tail_color = COLORS['snake_body']
+            _head_color = head_color if head_color else COLORS['snake_head']
+            _tail_color = body_color if body_color else COLORS['snake_body']
 
-            r = int(head_color[0] + (tail_color[0] - head_color[0]) * ratio)
-            g = int(head_color[1] + (tail_color[1] - head_color[1]) * ratio)
-            b = int(head_color[2] + (tail_color[2] - head_color[2]) * ratio)
+            r = int(_head_color[0] + (_tail_color[0] - _head_color[0]) * ratio)
+            g = int(_head_color[1] + (_tail_color[1] - _head_color[1]) * ratio)
+            b = int(_head_color[2] + (_tail_color[2] - _head_color[2]) * ratio)
 
             colors.append((r, g, b))
 

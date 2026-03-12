@@ -10,7 +10,7 @@ import pygame
 from .config import (
     WINDOW_WIDTH, WINDOW_HEIGHT, WINDOW_TITLE,
     INITIAL_SPEED, SPEED_INCREMENT, MAX_SPEED,
-    STATE_MENU, STATE_PLAYING, STATE_PAUSED, STATE_GAME_OVER,
+    STATE_MENU, STATE_PLAYING, STATE_PAUSED, STATE_GAME_OVER, STATE_SKIN_SELECT,
     DIRECTION_UP, DIRECTION_DOWN, DIRECTION_LEFT, DIRECTION_RIGHT,
     STATE_NAMES, GRID_WIDTH, GRID_HEIGHT
 )
@@ -19,6 +19,7 @@ from .food import Food
 from .ui import UI
 from .logger import get_logger
 from .highscore import get_highscore_manager
+from .skin import get_skin_manager
 
 
 class Game:
@@ -45,6 +46,7 @@ class Game:
         self.food = Food()
         self.ui = UI(self.screen)
         self.highscore_manager = get_highscore_manager()
+        self.skin_manager = get_skin_manager()
 
         # 游戏状态
         self.state = STATE_MENU
@@ -52,6 +54,10 @@ class Game:
         self.speed = INITIAL_SPEED
         self.high_score = self.highscore_manager.get_high_score()
         self.current_rank = -1  # 当前游戏排名
+        self.skin_select_index = 0  # 皮肤选择索引
+
+        # 应用当前皮肤
+        self._apply_skin()
 
         # 计时器
         self.last_move_time = 0
@@ -71,6 +77,12 @@ class Game:
         except Exception as e:
             self.sound_enabled = False
             self.logger.warning(f"音效系统初始化失败: {e}")
+
+    def _apply_skin(self):
+        """应用当前皮肤"""
+        skin = self.skin_manager.get_skin()
+        self.food.set_colors(skin.food, skin.food_glow)
+        self.logger.debug(f"应用皮肤: {skin.display_name}")
 
     def reset(self):
         """重置游戏状态"""
@@ -102,9 +114,38 @@ class Game:
                 if self.state == STATE_MENU:
                     if event.key in (pygame.K_SPACE, pygame.K_RETURN):
                         self.reset()
+                    elif event.key == pygame.K_s:
+                        # 进入皮肤选择
+                        self.state = STATE_SKIN_SELECT
+                        self.skin_select_index = 0
+                        # 设置初始选中索引为当前皮肤
+                        skins = self.skin_manager.get_all_skins()
+                        for i, skin in enumerate(skins):
+                            if skin.name == self.skin_manager.get_current_skin_name():
+                                self.skin_select_index = i
+                                break
+                        self.logger.info("进入皮肤选择界面")
                     elif event.key == pygame.K_q:
                         self.logger.info("用户在菜单界面按Q退出")
                         return False
+
+                # 皮肤选择状态
+                elif self.state == STATE_SKIN_SELECT:
+                    skins = self.skin_manager.get_all_skins()
+                    if event.key in (pygame.K_UP, pygame.K_w):
+                        self.skin_select_index = (self.skin_select_index - 1) % len(skins)
+                    elif event.key in (pygame.K_DOWN, pygame.K_s):
+                        self.skin_select_index = (self.skin_select_index + 1) % len(skins)
+                    elif event.key in (pygame.K_SPACE, pygame.K_RETURN):
+                        # 确认选择
+                        selected_skin = skins[self.skin_select_index]
+                        self.skin_manager.set_skin(selected_skin.name)
+                        self._apply_skin()
+                        self.state = STATE_MENU
+                        self.logger.info(f"选择皮肤: {selected_skin.display_name}")
+                    elif event.key == pygame.K_ESCAPE:
+                        self.state = STATE_MENU
+                        self.logger.info("取消皮肤选择")
 
                 # 游戏中状态
                 elif self.state == STATE_PLAYING:
@@ -208,17 +249,22 @@ class Game:
         self.ui.draw_background()
         self.ui.draw_border()
 
+        # 获取当前皮肤
+        skin = self.skin_manager.get_skin()
+
         # 绘制食物
         self.food.update_animation()
         self.ui.draw_food(
             self.food.position,
-            self.food.pulse_scale
+            self.food.pulse_scale,
+            skin.food,
+            skin.food_glow
         )
 
         # 绘制蛇
         self.ui.draw_snake(
             self.snake.body,
-            self.snake.get_body_colors()
+            self.snake.get_body_colors(skin.snake_head, skin.snake_body)
         )
 
         # 绘制分数
@@ -229,6 +275,12 @@ class Game:
             self.ui.draw_menu(
                 self.highscore_manager.get_top_scores(5),
                 self.high_score
+            )
+        elif self.state == STATE_SKIN_SELECT:
+            self.ui.draw_skin_select(
+                self.skin_manager.get_all_skins(),
+                self.skin_manager.get_current_skin_name(),
+                self.skin_select_index
             )
         elif self.state == STATE_PAUSED:
             self.ui.draw_pause()

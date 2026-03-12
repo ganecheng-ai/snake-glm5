@@ -48,13 +48,15 @@ STATE_MENU = 0
 STATE_PLAYING = 1
 STATE_PAUSED = 2
 STATE_GAME_OVER = 3
+STATE_SKIN_SELECT = 4
 
 # 状态名称映射（用于日志）
 STATE_NAMES = {
     STATE_MENU: '菜单',
     STATE_PLAYING: '游戏中',
     STATE_PAUSED: '暂停',
-    STATE_GAME_OVER: '游戏结束'
+    STATE_GAME_OVER: '游戏结束',
+    STATE_SKIN_SELECT: '皮肤选择'
 }
 
 # 方向
