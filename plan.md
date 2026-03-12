@@ -68,4 +68,8 @@ snake-glm5/
 - **v1.2.0**: 高分榜 + 皮肤系统（计划中）
 
 ## 当前状态
-✅ v1.0.0 已发布！[下载地址](https://github.com/ganecheng-ai/snake-glm5/releases/tag/v1.0.0)
+✅ v1.0.1 已发布！[下载地址](https://github.com/ganecheng-ai/snake-glm5/releases/tag/v1.0.1)
+
+### v1.0.1 更新内容
+- 修复 GitHub Actions 发布工作流权限问题
+- 成功发布 Windows/Linux/macOS 三个平台的构建产物
