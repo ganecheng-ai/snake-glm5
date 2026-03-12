@@ -20,7 +20,7 @@ from .ui import UI
 from .highscore import HighScoreManager, get_highscore_manager
 from .config import *
 
-__version__ = '1.3.2'
+__version__ = '1.4.0'
 __author__ = 'Claude Code'
 
 __all__ = ['Game', 'Snake', 'Food', 'UI', 'HighScoreManager', 'get_highscore_manager', 'main']
