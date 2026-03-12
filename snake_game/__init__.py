@@ -19,7 +19,7 @@ from .food import Food
 from .ui import UI
 from .config import *
 
-__version__ = '1.0.1'
+__version__ = '1.1.0'
 __author__ = 'Claude Code'
 
 __all__ = ['Game', 'Snake', 'Food', 'UI', 'main']
