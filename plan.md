@@ -91,12 +91,17 @@ snake-glm5/
 - **v1.4.0**: 皮肤系统（计划中）
 
 ## 当前状态
-✅ v1.3.0 已发布
+✅ v1.3.1 已发布
+
+### v1.3.1 更新内容
+- 修复Windows构建流程中的PowerShell语法错误
+- 将Create distribution package步骤分离为Windows和Linux/macOS两个独立步骤
+- Windows步骤使用bash shell确保bash语法正常工作
 
 ### v1.3.0 更新内容
 - 修复构建流程，发布真正的独立可执行文件
-- 用户无需安装 Python 即可运行游戏
-- 改进 Windows/Linux/macOS 发布包
+- 用户无需安装Python即可运行游戏
+- 改进Windows/Linux/macOS发布包
 
 ### v1.2.1 更新内容
 - 改进 GitHub Actions 工作流，添加缺失的隐藏导入模块（logger, highscore, main）

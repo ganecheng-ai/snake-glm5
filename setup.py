@@ -9,7 +9,7 @@ with open('README.md', 'r', encoding='utf-8') as f:
 
 setup(
     name='snake-game',
-    version='1.2.1',
+    version='1.3.1',
     author='Claude Code',
     author_email='',
     description='一个精美的贪吃蛇游戏，支持中文界面',
