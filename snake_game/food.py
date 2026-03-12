@@ -2,6 +2,7 @@
 食物类
 Food Class
 """
+import math
 import random
 from typing import Tuple, List
 
@@ -47,5 +48,4 @@ class Food:
             float: 缩放比例 (0.8 - 1.0)
         """
         # 使用正弦波实现平滑脉动
-        import math
         return 0.9 + 0.1 * math.sin(self.animation_offset * 0.628)
