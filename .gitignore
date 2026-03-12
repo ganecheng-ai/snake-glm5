@@ -64,3 +64,7 @@ Thumbs.db
 # Project specific
 *.pyc
 test_*.pyc
+
+# Logs
+logs/
+*.log
