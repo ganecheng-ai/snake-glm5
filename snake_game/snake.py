@@ -2,7 +2,6 @@
 贪吃蛇类
 Snake Class
 """
-import random
 from typing import List, Tuple, Optional
 
 from .config import (
