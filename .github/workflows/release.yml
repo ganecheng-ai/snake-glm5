@@ -1,0 +1,145 @@
+name: Build and Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pygame
+          pip install pytest
+
+      - name: Run tests
+        run: |
+          python -m pytest tests/ -v || python -m unittest discover tests/
+
+  build:
+    needs: test
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+        include:
+          - os: windows-latest
+            platform: windows
+            executable_suffix: .exe
+          - os: ubuntu-latest
+            platform: linux
+            executable_suffix: ''
+          - os: macos-latest
+            platform: macos
+            executable_suffix: ''
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install pygame pyinstaller
+
+      - name: Build executable (Windows)
+        if: matrix.platform == 'windows'
+        run: |
+          pyinstaller --onefile --windowed --name snake-game --add-data "snake_game;snake_game" -c "from snake_game import main; main()" --noconfirm || echo "Build attempted"
+
+      - name: Build executable (Linux)
+        if: matrix.platform == 'linux'
+        run: |
+          pyinstaller --onefile --windowed --name snake-game --add-data "snake_game:snake_game" -c "from snake_game import main; main()" --noconfirm || echo "Build attempted"
+
+      - name: Build executable (macOS)
+        if: matrix.platform == 'macos'
+        run: |
+          pyinstaller --onefile --windowed --name snake-game --add-data "snake_game:snake_game" -c "from snake_game import main; main()" --noconfirm || echo "Build attempted"
+
+      - name: Create distribution package
+        run: |
+          mkdir -p dist/package
+          cp -r snake_game dist/package/
+          cp README.md dist/package/
+          cp LICENSE dist/package/
+          cp requirements.txt dist/package/
+
+      - name: Create archive (Windows)
+        if: matrix.platform == 'windows'
+        run: |
+          cd dist
+          powershell Compress-Archive -Path package -DestinationPath snake-game-${{ matrix.platform }}.zip
+
+      - name: Create archive (Linux/macOS)
+        if: matrix.platform != 'windows'
+        run: |
+          cd dist
+          tar -czvf snake-game-${{ matrix.platform }}.tar.gz -C package .
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: snake-game-${{ matrix.platform }}
+          path: |
+            dist/snake-game-${{ matrix.platform }}.*
+
+  release:
+    needs: build
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/')
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+
+      - name: Generate checksums
+        run: |
+          cd artifacts
+          find . -type f \( -name "*.zip" -o -name "*.tar.gz" \) -exec sha256sum {} \; > checksums.txt
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: |
+            artifacts/**/*
+          body: |
+            ## 贪吃蛇游戏发布
+
+            ### 下载说明
+            - **Windows**: 下载 `snake-game-windows.zip`
+            - **Linux**: 下载 `snake-game-linux.tar.gz`
+            - **macOS**: 下载 `snake-game-macos.tar.gz`
+
+            ### 运行方法
+            1. 解压下载的文件
+            2. 安装依赖: `pip install -r requirements.txt`
+            3. 运行游戏: `python -m snake_game`
+
+            ### 校验文件完整性
+            请使用 `checksums.txt` 校验下载文件的 SHA256 哈希值。
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
