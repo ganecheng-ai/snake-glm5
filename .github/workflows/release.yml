@@ -82,10 +82,18 @@ jobs:
       - name: Create distribution package
         run: |
           mkdir -p dist/package
-          cp -r snake_game dist/package/
+
+          # Copy executable (the main artifact)
+          if [ "${{ matrix.platform }}" = "windows" ]; then
+            cp dist/snake-game.exe dist/package/
+          else
+            cp dist/snake-game dist/package/
+            chmod +x dist/package/snake-game
+          fi
+
+          # Copy documentation
           cp README.md dist/package/
           cp LICENSE dist/package/
-          cp requirements.txt dist/package/
 
       - name: Create archive (Windows)
         if: matrix.platform == 'windows'
@@ -133,14 +141,17 @@ jobs:
             ## 贪吃蛇游戏发布
 
             ### 下载说明
-            - **Windows**: 下载 `snake-game-windows.zip`
-            - **Linux**: 下载 `snake-game-linux.tar.gz`
-            - **macOS**: 下载 `snake-game-macos.tar.gz`
+            - **Windows**: 下载 `snake-game-windows.zip`，解压后运行 `snake-game.exe`
+            - **Linux**: 下载 `snake-game-linux.tar.gz`，解压后运行 `./snake-game`
+            - **macOS**: 下载 `snake-game-macos.tar.gz`，解压后运行 `./snake-game`
 
             ### 运行方法
             1. 解压下载的文件
-            2. 安装依赖: `pip install -r requirements.txt`
-            3. 运行游戏: `python -m snake_game`
+            2. 直接运行可执行文件（无需安装Python）
+
+            ### 注意事项
+            - Linux/macOS首次运行可能需要添加执行权限: `chmod +x snake-game`
+            - macOS可能需要在"系统偏好设置 > 安全性与隐私"中允许运行
 
             ### 校验文件完整性
             请使用 `checksums.txt` 校验下载文件的 SHA256 哈希值。
