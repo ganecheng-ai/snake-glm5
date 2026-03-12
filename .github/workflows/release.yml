@@ -64,17 +64,17 @@ jobs:
       - name: Build executable (Windows)
         if: matrix.platform == 'windows'
         run: |
-          pyinstaller --onefile --windowed --name snake-game --add-data "snake_game;snake_game" -c "from snake_game import main; main()" --noconfirm || echo "Build attempted"
+          pyinstaller --onefile --windowed --name snake-game run_game.py --hidden-import=snake_game --hidden-import=snake_game.game --hidden-import=snake_game.snake --hidden-import=snake_game.food --hidden-import=snake_game.ui --hidden-import=snake_game.config --noconfirm
 
       - name: Build executable (Linux)
         if: matrix.platform == 'linux'
         run: |
-          pyinstaller --onefile --windowed --name snake-game --add-data "snake_game:snake_game" -c "from snake_game import main; main()" --noconfirm || echo "Build attempted"
+          pyinstaller --onefile --windowed --name snake-game run_game.py --hidden-import=snake_game --hidden-import=snake_game.game --hidden-import=snake_game.snake --hidden-import=snake_game.food --hidden-import=snake_game.ui --hidden-import=snake_game.config --noconfirm
 
       - name: Build executable (macOS)
         if: matrix.platform == 'macos'
         run: |
-          pyinstaller --onefile --windowed --name snake-game --add-data "snake_game:snake_game" -c "from snake_game import main; main()" --noconfirm || echo "Build attempted"
+          pyinstaller --onefile --windowed --name snake-game run_game.py --hidden-import=snake_game --hidden-import=snake_game.game --hidden-import=snake_game.snake --hidden-import=snake_game.food --hidden-import=snake_game.ui --hidden-import=snake_game.config --noconfirm
 
       - name: Create distribution package
         run: |
